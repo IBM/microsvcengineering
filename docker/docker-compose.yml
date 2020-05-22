@@ -1,0 +1,129 @@
+version: '2'
+services:
+  mariadb:
+    image: mariadb
+    container_name: mariadb
+    ports:
+      - "3306:3306"
+    volumes:
+      - msengg_mariadb_data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=samplemicrosvcDb
+      - MYSQL_USER=sampleuser
+      - MYSQL_PASSWORD=sampleuser
+    networks:
+      msengg:
+        ipv4_address: 10.13.0.2
+
+  # Kafka
+  zookeeper:
+    image: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+      - "3888:3888"
+    volumes:
+      - /var/local/docker/msengg/volumes/zookeeper/config:/conf
+      - msengg_zoo_data:/data
+      - msengg_zoo_datalog:/datalog
+    networks:
+      msengg:
+        ipv4_address: 10.13.0.3
+
+  kafka:
+    image: kafka:2.4.0
+    container_name: kafka
+    ports:
+      - "9202:9202"
+      - "9092:9092"
+      - "9999:9999"
+      - "9308:9308"
+    depends_on:
+      - zookeeper
+    volumes:
+      - /var/local/docker/msengg/volumes/kafka/config:/usr/local/kafka_2.12-2.4.0/config
+      - msengg_kafka_logs:/usr/local/kafka_2.12-2.4.0/logs
+      - msengg_kafka_data:/usr/local/kafka_2.12-2.4.0/data
+    environment:
+      - JMX_HOST=10.13.0.4
+      - JMX_PORT=9999
+      - KAFKA_HOST=10.13.0.4
+      - KAFKA_PORT=9308
+    networks:
+      msengg:
+        ipv4_address: 10.13.0.4
+
+  # prometheus & grafana
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - msengg_prometheus:/prometheus
+      - /var/local/docker/msengg/volumes/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      msengg:
+        ipv4_address: 10.13.0.5
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
+    networks:
+      msengg:
+        ipv4_address: 10.13.0.6
+
+  samplemicrosvc:
+    image: samplemicrosvc
+    container_name: samplemicrosvc
+    expose:
+      - "25001"
+    ports:
+      - 25001:25001
+    depends_on:
+      - mariadb
+      - prometheus
+      - grafana
+      - kafka
+    volumes:
+      - msengg_samplemicrosvc_logs:/logs
+      - msengg_samplemicrosvc_kafka_statedir:/kafka/state/dir
+    environment:
+      - ENV=local
+      - INSTANCE_ID=1
+      - KAFKA_BROKERS=10.13.0.4:9092
+      - AUDIT_TOPIC=audit.persist
+      - PORT=25001
+      - JDBC_URL=jdbc:mariadb://10.13.0.2:3306/samplemicrosvcDb
+      - JDBC_USER_NAME=sampleuser
+      - JDBC_USER_PASSWORD=sampleuser
+      - INSTANCE_COUNT=1
+      - AUDIT_PERSISTER_CONCURRENCY=2
+      - KAFKA_STATE_DIR=/kafka/state/dir
+      - LOG_DIR=/logs
+    networks:
+      msengg:
+        ipv4_address: 10.13.0.7
+
+volumes:
+  msengg_mariadb_data:
+  msengg_zoo_data:
+  msengg_zoo_datalog:
+  msengg_kafka_logs:
+  msengg_kafka_data:
+  msengg_prometheus:
+  msengg_samplemicrosvc_logs:
+  msengg_samplemicrosvc_kafka_statedir:
+
+networks:
+  msengg:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.13.0.0/16
+          gateway: 10.13.0.1

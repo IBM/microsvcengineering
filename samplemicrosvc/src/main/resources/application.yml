@@ -1,0 +1,96 @@
+env: ${ENV}
+instanceId: ${INSTANCE_ID}
+
+application:
+  kafkaHosts: ${KAFKA_BROKERS}
+  audit:
+    topic: ${AUDIT_TOPIC}
+    key.serializer: org.apache.kafka.common.serialization.StringSerializer
+    value.serializer: com.ibm.dip.microsvcengineering.framework.kafka.serdes.ByteArraySerializer
+  address:
+    serviceURL: 'http://localhost:25001/addressDetails/{addressId}'
+
+server:
+  port: ${PORT}
+  servlet:
+    context-path: /
+
+management:
+  health:
+    binders.enabled: true
+  endpoint:
+    health.show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: ["health","info", "metrics", "prometheus", "beans", "env", "loggers", "bindings"]
+
+spring:
+  application:
+    name: samplemicrosvc
+
+  datasource:
+    url: ${JDBC_URL}
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: ${JDBC_USER_NAME}
+    password: ${JDBC_USER_PASSWORD}
+    name: samplemicrosvcDS
+    hikari:
+      pool-name: samplemicrosvcDbPool
+      auto-commit: true
+      maximum-pool-size: 20
+
+  jpa:
+    generate-ddl: true
+    hibernate:
+      dialect: org.hibernate.dialect.MariaDB103Dialect
+      ddl-auto: create
+
+  cloud:
+    stream:
+      instance-count: ${INSTANCE_COUNT}
+      instance-index: ${INSTANCE_ID}
+      bindings:
+        input:
+          destination: ${AUDIT_TOPIC}
+          group: ${spring.application.name}
+          consumer:
+            concurrency: ${AUDIT_PERSISTER_CONCURRENCY}
+            use-native-decoding: true
+            partitioned: true
+
+      kafka:
+        streams:
+          binder:
+            auto-add-partitions: true
+            auto-create-topics: true
+            brokers:
+              - ${KAFKA_BROKERS}
+            configuration:
+              state.dir: ${KAFKA_STATE_DIR}
+              commit.interval.ms: 10
+              retries: 0
+              retry.backoff.ms: 300000
+
+              consumer.reconnect.backoff.ms: 300000
+              consumer.retry.backoff.ms: 300000
+              consumer.session.timeout.ms: 20000
+              consumer.request.timeout.ms: 15000
+
+              admin.reconnect.backoff.ms: 300000
+              admin.retry.backoff.ms: 300000
+              admin.session.timeout.ms: 20000
+              admin.request.timeout.ms: 15000
+
+          bindings:
+            input:
+              consumer:
+                applicationId: ${spring.application.name}
+                autoCommitOnError: false
+                key-serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+                value-serde: com.ibm.dip.samplemicrosvc.integration.kafka.serdes.AuditEntrySerde
+                configuration:
+                  auto.offset.reset: earliest
+                  max.poll.records: 5
+                  isolation.level: read_uncommitted
+                  client.id: ${spring.application.name}.${instanceId}

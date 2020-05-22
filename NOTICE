@@ -1,0 +1,40 @@
+This sample application includes software developed at
+- The Apache Software Foundation (https://www.apache.org/).
+
+This distribution has a binary dependency on jersey, which is available under the CDDL
+License. The source code of jersey can be found at https://github.com/jersey/jersey/.
+
+This distribution has a dependency on Apache Kafka available under the Apache License 2.0
+
+This distribution has a dependency on Apache Zookeeper available under the Apache License 2.0
+
+This distribution has a binary dependency on jmx_prometheus_javaagent-0.12.0.jar which is available under
+the Apache-2.0 License. The source code of this javaagent can be found at: https://github.com/prometheus/jmx_exporter
+
+This distribution has a dependency on Prometheus which is available under the Apache-2.0 License.
+The source code of Prometheus is at: https://github.com/prometheus/prometheus
+
+This distribution has a dependency on Grafana which is available under the Apache-2.0 License.
+The source code of Grafana is at: https://github.com/grafana/grafana
+
+This distribution has a dependency on MariaDB (its docker image available at: https://hub.docker.com/_/mariadb)
+which is available under the GNU GENERAL PUBLIC LICENSE Version 2
+
+This distribution has a binary dependency on Maria DB Java Connector which is available under the
+LGPL license, version 2.1 or later
+
+This distribution has a binary dependency on Micrometer which is available under the Apache License 2.0.
+The source code of Micrometer is at: https://github.com/micrometer-metrics/micrometer
+
+This distribution has a dependency on Docker CE generally available under Apache License 2.0
+This distribution has a dependency on docker-compose generally available under the Apache License 2.0
+
+This distribution has a binary dependency on Spring Projects. Namely
+- spring-boot available under the Apache License 2.0
+- spring-framework available under the Apache License 2.0
+- spring-integration
+- spring-cloud-stream available under the Apache License 2.0
+- spring-kafka
+
+This distribution includes changed/edited Grafana Dashboards available at: https://grafana.com/grafana/dashboards
+
