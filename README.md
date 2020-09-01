@@ -88,3 +88,6 @@ There are 3 readymade dashboards available in `docker/grafana` folder. They can 
 - Kafka Dashboard
 
 When Grafana is started for the first time - create a new prometheus datasource with name `prometheus` and URL `http://prometheus:9090` (if using the same docker-compose provided in `${BASE_DIR}/docker`). And start importing the dashboard's json files. 
+
+# Notes
+This repo was opensourced in May 2020. 
